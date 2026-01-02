@@ -1,7 +1,21 @@
 from sqlalchemy.orm import Session
 from . import models, schemas
 from .auth import hash_password, verify_password
+from .models import Note
 
+def create_note(db, title: str, content: str, user_id: int):
+    note = Note(
+        title = title,
+        content = content,
+        owner_id = user_id
+    )
+    db.add(note)
+    db.commit()
+    db.refresh(note)
+    return note
+
+def get_user_notes(db, user_id: int):
+    return db.query(Note).filter(Note.owner_id == user_id).all()
 
 def get_user_by_email(db: Session, email:str):
     return db.query(models.User).filter(models.User.email == email).first()

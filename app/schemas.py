@@ -19,3 +19,15 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+class NoteCreate(BaseModel):
+    title: str
+    content: str
+
+class NoteResponse(BaseModel):
+    id: int
+    title: str
+    content: str
+
+    class Config:
+        orm_mode = True
