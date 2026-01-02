@@ -1,8 +1,6 @@
 from datetime import timedelta
-
 from fastapi import FastAPI, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from .database import engine
 from .models import Base, User
@@ -38,7 +36,7 @@ def get_notes(
 # ***************** /LOGIN *******************************
 @app.post("/login", response_model = schemas.Token)
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
-    authenticated_user = crud.authenticate_user(db, user.email, user.password)
+    authenticated_user = crud.authenticate_user(db, str(user.email), user.password)
     if not authenticated_user:
         raise HTTPException(
             status_code= status.HTTP_401_UNAUTHORIZED,
@@ -55,7 +53,7 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 # ***************** /REGISTER *******************************
 @app.post("/register", response_model=schemas.UserResponse)
 def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
-    existing_user = crud.get_user_by_email(db, user.email)
+    existing_user = crud.get_user_by_email(db, str(user.email))
     if existing_user:
         raise HTTPException(
             status_code= status.HTTP_400_BAD_REQUEST,
@@ -64,7 +62,43 @@ def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return crud.create_user(db, user)
 
 
+# *************** PUT ********/NOTES/{NOTE_ID} ****************
 
+@app.put("/notes/{note_id}", response_model = schemas.NoteResponse)
+def update_note(
+        note_id: int,
+        note_data: schemas.NoteUpdate,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+
+):
+    note = crud.get_note_by_id(db, note_id)
+
+    if not note or note.owner_id != current_user.id:
+        raise HTTPException(status_code = 404, detail = "Note not found")
+
+    return crud.update_note(
+        db,
+        note,
+        note_data.title,
+        note_data.content
+    )
+
+# **************** DELETE /NOTES/{note_id} **************************
+
+@app.delete("/notes/{note_id}")
+def delete_note(
+        note_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user)
+):
+    note = crud.get_note_by_id(db, note_id)
+
+    if not note or note.owner_id != current_user.id:
+        raise HTTPException(status_code = 404, detail="Note not found")
+
+    crud.delete_note(db, note)
+    return {"message": "Note deleted" }
 
 
 @app.get("/")

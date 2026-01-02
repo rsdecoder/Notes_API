@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, ConfigDict
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -30,4 +30,10 @@ class NoteResponse(BaseModel):
     content: str
 
     class Config:
-        orm_mode = True
+        orm_mode = ConfigDict(from_attributes=True)
+
+
+class NoteUpdate(BaseModel):
+    title: str
+    content: str
+
