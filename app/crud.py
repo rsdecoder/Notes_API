@@ -30,7 +30,7 @@ def update_note(db, note: Note, title: str, content: str):
     return note
 
 
-" ************************* UPDATE NOTE *************************"
+" ************************* DELETE NOTE *************************"
 def delete_note(db, note: Note):
     db.delete(note)
     db.commit()

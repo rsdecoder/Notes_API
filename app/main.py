@@ -6,9 +6,15 @@ from .database import engine
 from .models import Base, User
 from .dependencies import get_db, get_current_user
 from . import schemas, crud
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="Notes API")
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 Base.metadata.create_all(bind=engine)
 
 # ***************** /NOTES *******************************
@@ -37,6 +43,7 @@ def get_notes(
 @app.post("/login", response_model = schemas.Token)
 def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
     authenticated_user = crud.authenticate_user(db, str(user.email), user.password)
+
     if not authenticated_user:
         raise HTTPException(
             status_code= status.HTTP_401_UNAUTHORIZED,
