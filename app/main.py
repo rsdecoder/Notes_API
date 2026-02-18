@@ -55,7 +55,8 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
         expires_delta= timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
 
-    return {"access_token": access_token}
+    return {"access_token": access_token,
+            "token_type" : "bearer"}
 
 # ***************** /REGISTER *******************************
 @app.post("/register", response_model=schemas.UserResponse)
