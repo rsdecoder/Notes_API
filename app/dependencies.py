@@ -7,7 +7,7 @@ from .models import User
 from .auth import SECRET_KEY, ALGORITHM
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="session")
 
 
 def get_db():

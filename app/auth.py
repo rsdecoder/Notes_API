@@ -38,7 +38,4 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 
     to_encode.update({"exp": expire})
 
-    print("SECRET_KEY VALUE:", SECRET_KEY)
-    print("SECRET_KEY TYPE:", type(SECRET_KEY))
-
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

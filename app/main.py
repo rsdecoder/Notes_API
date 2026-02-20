@@ -1,5 +1,8 @@
 from datetime import timedelta
+from typing import Annotated
+
 from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from .auth import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from .database import engine
@@ -7,6 +10,7 @@ from .models import Base, User
 from .dependencies import get_db, get_current_user
 from . import schemas, crud
 from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI(title="Notes API")
 app.add_middleware(
     CORSMiddleware,
@@ -57,6 +61,25 @@ def login(user: schemas.UserLogin, db: Session = Depends(get_db)):
 
     return {"access_token": access_token,
             "token_type" : "bearer"}
+
+# Authorize token with a different endpoint
+@app.post("/session")
+async def session(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: Session = Depends(get_db)):
+    authenticated_user = crud.authenticate_user(db, str(form_data.username), form_data.password)
+
+    if not authenticated_user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Credentials"
+        )
+
+    access_token = create_access_token(
+        data={"sub": authenticated_user.email},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    )
+
+    return {"access_token": access_token,
+            "token_type": "bearer"}
 
 # ***************** /REGISTER *******************************
 @app.post("/register", response_model=schemas.UserResponse)
